@@ -5,8 +5,8 @@ import (
 )
 
 type ResponseSuccess struct {
-	Status  string `json:"status" example:"success"`
-	Message string `json:"message" example:"Welcome, John doe"`
+	Success string `json:"Success" example:"true"`
+	Message string `json:"message" example:"Login success"`
 }
 
 type ResponseError struct {
