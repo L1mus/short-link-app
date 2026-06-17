@@ -69,3 +69,10 @@ type GetAllLinkResponse struct {
 	ClickCount  int       `json:"click_count"`
 	CreatedAt   time.Time `json:"created_at"`
 }
+
+type CreateLinkResponse struct {
+	ID          int    `json:"id"`
+	OriginalURL string `json:"original_url"`
+	Slug        string `json:"slug"`
+	ShortURL    string `json:"short_url"`
+}
