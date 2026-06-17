@@ -1,0 +1,28 @@
+services:
+  container-db:
+    image: postgres:18.3-alpine3.23
+    env_file:
+      - ./psql/.env
+    volumes:
+      - psql:/var/lib/postgresql/18/docker
+    ports:
+      - "5433:5432"
+    networks:
+      - backend-network
+
+  container-chace:
+    build: ./rdb
+    volumes:
+      - rdb:/data
+    ports:
+      - "6380:6379"
+    networks:
+      - backend-network
+
+
+networks:
+  backend-network:
+
+volumes:
+  rdb:
+  psql:
