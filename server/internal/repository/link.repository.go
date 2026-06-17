@@ -131,3 +131,15 @@ func (r *LinkRepository) CheckDeletedLinkById(ctx context.Context, linkID int) e
 	}
 	return nil
 }
+
+func (r *LinkRepository) CheckOriginalLink(ctx context.Context, slug string) (model.Links, error) {
+	sql := `
+	SELECT slug,original_url FROM links WHERE sluG = $1 AND deleted_at IS NULL
+`
+	var data model.Links
+	err := r.db.QueryRow(ctx, sql, slug).Scan(&data.Slug, &data.OriginalURL)
+	if err != nil {
+		return model.Links{}, err
+	}
+	return data, nil
+}
