@@ -79,3 +79,55 @@ func (r *LinkRepository) GetAllLink(ctx context.Context, UserId int, req dto.Pag
 	}
 	return data, nil
 }
+
+func (r *LinkRepository) CreateShortLink(ctx context.Context, userID int, slug string, originalLink string) (model.Links, error) {
+	var data model.Links
+	sql := `
+	INSERT INTO links (user_id,original_url,slug) VALUES ($1,$2,$3) RETURNING id,original_url,slug
+`
+	args := []any{userID, originalLink, slug}
+	err := r.db.QueryRow(ctx, sql, args...).Scan(&data.ID, &data.OriginalURL, &data.Slug)
+	if err != nil {
+		return model.Links{}, err
+	}
+	return model.Links{
+		ID:          data.ID,
+		OriginalURL: data.OriginalURL,
+		Slug:        data.Slug,
+	}, nil
+}
+
+func (r *LinkRepository) CheckLink(ctx context.Context, slug string) (bool, error) {
+	sql := `
+	SELECT COUNT(1) FROM links WHERE slug = $1 AND deleted_at IS NULL`
+	var count int
+
+	if err := r.db.QueryRow(ctx, sql, slug).Scan(&count); err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
+func (r *LinkRepository) DeleteLinkById(ctx context.Context, linkID int) error {
+	sql := `
+	UPDATE movies SET deleted_at = NOW() WHERE id = $1
+`
+	_, err := r.db.Exec(ctx, sql, linkID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *LinkRepository) CheckDeletedLinkById(ctx context.Context, linkID int) error {
+	sql := `
+	SELECT id FROM movies WHERE id = $1 AND deleted_at IS NULL
+`
+	_, err := r.db.Exec(ctx, sql, linkID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
