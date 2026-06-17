@@ -6,8 +6,10 @@ import (
 	"math"
 	"strconv"
 
+	"github.com/L1mus/short-link-app/server/internal/appError"
 	"github.com/L1mus/short-link-app/server/internal/dto"
 	"github.com/L1mus/short-link-app/server/internal/repository"
+	"github.com/L1mus/short-link-app/server/pkg"
 )
 
 type LinkService struct {
@@ -66,4 +68,63 @@ func (s *LinkService) GetAllLink(ctx context.Context, id int, req dto.PageQuery)
 		PrevLink:   prevLink,
 	}
 	return links, metaDataPAgination, nil
+}
+
+func (s *LinkService) CreateShortLink(ctx context.Context, userID int, req dto.CreateShortLinkRequest) (dto.CreateLinkResponse, error) {
+	if req.OptionalSlug != "" {
+		exist, err := s.linkRepository.CheckLink(ctx, req.OptionalSlug)
+		if err != nil {
+			return dto.CreateLinkResponse{}, err
+		}
+		if exist {
+			return dto.CreateLinkResponse{}, appError.LinkAlreadyExists
+		}
+
+		link, err := s.linkRepository.CreateShortLink(ctx, userID, req.OptionalSlug, req.OriginalUrl)
+		if err != nil {
+			return dto.CreateLinkResponse{}, err
+		}
+		return dto.CreateLinkResponse{
+			ID:          link.ID,
+			OriginalURL: link.OriginalURL,
+			Slug:        link.Slug,
+			ShortURL:    fmt.Sprintf("short.link/%s", link.Slug),
+		}, nil
+	}
+
+	slug, err := pkg.GenSlug()
+	if err != nil {
+		return dto.CreateLinkResponse{}, err
+	}
+	exist, err := s.linkRepository.CheckLink(ctx, slug)
+	if err != nil {
+		return dto.CreateLinkResponse{}, err
+	}
+	if exist {
+		return dto.CreateLinkResponse{}, appError.LinkAlreadyExists
+	}
+	link, err := s.linkRepository.CreateShortLink(ctx, userID, slug, req.OriginalUrl)
+	if err != nil {
+		return dto.CreateLinkResponse{}, err
+	}
+	return dto.CreateLinkResponse{
+		ID:          link.ID,
+		OriginalURL: link.OriginalURL,
+		Slug:        link.Slug,
+		ShortURL:    fmt.Sprintf("short.link/%s", link.Slug),
+	}, nil
+}
+
+func (s *LinkService) DeleteLink(ctx context.Context, linkID int) error {
+	err := s.linkRepository.CheckDeletedLinkById(ctx, linkID)
+	if err != nil {
+		return appError.LinkNotFound
+	}
+
+	err = s.linkRepository.DeleteLinkById(ctx, linkID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
