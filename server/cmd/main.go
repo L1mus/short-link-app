@@ -46,6 +46,22 @@ func main() {
 	}
 	// inisialisasi
 	app := gin.Default()
+	// connect ke db
+	db, err := config.ConnectPsql()
+	if err != nil {
+		log.Fatalf("DB connection error. \ncause: %s", err.Error())
+	}
+	defer db.Close()
+	log.Println("DB Connected")
+	// connect ke redis
+	rc, err := config.ConnectRedis()
+	if err != nil {
+		log.Fatalf("Redis connection error. \ncause: %s", err.Error())
+	}
+	defer rc.Close()
+	log.Println("Redis Connected")
+	// install router
+	router.InitRouter(app, db, rc)
 	// run
 	app.Run(fmt.Sprintf("%s:%s", os.Getenv("APP_HOST"), os.Getenv("APP_PORT")))
 }
