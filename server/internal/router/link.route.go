@@ -19,4 +19,6 @@ func LinkRouter(router *gin.Engine, db *pgxpool.Pool, rdb *redis.Client) {
 	linkController := controller.NewLinkController(linkService)
 
 	linkRouter.GET("/", linkController.GetAllLinks)
+	linkRouter.POST("/", linkController.CreateShortLink)
+	linkRouter.DELETE("/:id", linkController.DeleteShortLink)
 }
