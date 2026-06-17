@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS links
     user_id      INT                NOT NULL,
     original_url TEXT               NOT NULL,
     slug         VARCHAR(50) UNIQUE NOT NULL,
+    click_count  INT                NOT NULL DEFAULT 0,
     created_at   TIMESTAMP          NOT NULL DEFAULT NOW(),
     deleted_at   TIMESTAMP,
 
@@ -37,3 +38,9 @@ CREATE TABLE IF NOT EXISTS links
 
 CREATE INDEX idx_links_user_id ON links (user_id);
 CREATE UNIQUE INDEX idx_links_slug ON links (slug) WHERE deleted_at IS NULL;
+
+SELECT u.id AS user_id, concat('shrt.lnk/',l.slug) AS short_link, l.original_url,l.click_count,l.created_at, COUNT(*) OVER() AS total_count
+FROM links l
+         JOIN users u ON u.id = l.user_id
+WHERE l.deleted_at IS NULL AND u.id = 1
+ORDER BY l.created_at ASC LIMIT 10 OFFSET 0
