@@ -111,7 +111,7 @@ func (r *LinkRepository) CheckLink(ctx context.Context, slug string) (bool, erro
 
 func (r *LinkRepository) DeleteLinkById(ctx context.Context, linkID int) error {
 	sql := `
-	UPDATE movies SET deleted_at = NOW() WHERE id = $1
+	UPDATE links SET deleted_at = NOW() WHERE id = $1
 `
 	_, err := r.db.Exec(ctx, sql, linkID)
 	if err != nil {
@@ -123,7 +123,7 @@ func (r *LinkRepository) DeleteLinkById(ctx context.Context, linkID int) error {
 
 func (r *LinkRepository) CheckDeletedLinkById(ctx context.Context, linkID int) error {
 	sql := `
-	SELECT id FROM movies WHERE id = $1 AND deleted_at IS NULL
+	SELECT id FROM links WHERE id = $1 AND deleted_at IS NULL
 `
 	_, err := r.db.Exec(ctx, sql, linkID)
 	if err != nil {
