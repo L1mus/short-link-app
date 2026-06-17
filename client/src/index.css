@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+
+@theme{
+    --color-bg-primary: #004AC60D;
+    --color-blue-primary: #004AC6;
+    --color-blue-gradient: linear-gradient(to right, var(--color-blue-primary), #2563EB);
+}
+
+
+body{
+    font-family: Inter,sans-serif;
+}
