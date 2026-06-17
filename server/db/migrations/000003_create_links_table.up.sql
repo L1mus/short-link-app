@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS links
     user_id      INT                NOT NULL,
     original_url TEXT               NOT NULL,
     slug         VARCHAR(50) UNIQUE NOT NULL,
+    click_count  INT                NOT NULL DEFAULT 0,
     created_at   TIMESTAMP          NOT NULL DEFAULT NOW(),
     deleted_at   TIMESTAMP,
 
