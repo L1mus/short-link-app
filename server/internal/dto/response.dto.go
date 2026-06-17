@@ -61,3 +61,11 @@ type ForgotPasswordDTO struct {
 	Token     string    `json:"token"`
 	ExpiredAt time.Time `json:"expired_at"`
 }
+
+type GetAllLinkResponse struct {
+	UserId      int       `json:"user_id"`
+	ShortLink   string    `json:"short_link"`
+	OriginalURL string    `json:"original_link"`
+	ClickCount  int       `json:"click_count"`
+	CreatedAt   time.Time `json:"created_at"`
+}
