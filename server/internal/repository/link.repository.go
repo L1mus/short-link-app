@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -49,7 +48,7 @@ func (r *LinkRepository) GetAllLink(ctx context.Context, UserId int, req dto.Pag
 	page := 1
 
 	if req.Page != "" {
-		if p, err := strconv.Atoi(req.Page); err != nil {
+		if p, err := strconv.Atoi(req.Page); err == nil && p > 0 {
 			page = p
 		}
 	}
@@ -60,8 +59,6 @@ func (r *LinkRepository) GetAllLink(ctx context.Context, UserId int, req dto.Pag
 		return nil, err
 	}
 	args = append(args, limit, offset)
-
-	log.Println("banyak Arguments", args, "Banyak count", argCount)
 
 	sql := sb.String()
 	var data []model.GetAllLinks
@@ -125,7 +122,8 @@ func (r *LinkRepository) CheckDeletedLinkById(ctx context.Context, linkID int) e
 	sql := `
 	SELECT id FROM links WHERE id = $1 AND deleted_at IS NULL
 `
-	_, err := r.db.Exec(ctx, sql, linkID)
+	var id int
+	err := r.db.QueryRow(ctx, sql, linkID).Scan(&id)
 	if err != nil {
 		return err
 	}
@@ -134,7 +132,7 @@ func (r *LinkRepository) CheckDeletedLinkById(ctx context.Context, linkID int) e
 
 func (r *LinkRepository) CheckOriginalLink(ctx context.Context, slug string) (model.Links, error) {
 	sql := `
-	SELECT slug,original_url FROM links WHERE sluG = $1 AND deleted_at IS NULL
+	SELECT slug,original_url FROM links WHERE slug = $1 AND deleted_at IS NULL
 `
 	var data model.Links
 	err := r.db.QueryRow(ctx, sql, slug).Scan(&data.Slug, &data.OriginalURL)

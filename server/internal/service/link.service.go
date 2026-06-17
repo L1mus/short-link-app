@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -10,6 +11,7 @@ import (
 	"github.com/L1mus/short-link-app/server/internal/dto"
 	"github.com/L1mus/short-link-app/server/internal/repository"
 	"github.com/L1mus/short-link-app/server/pkg"
+	"github.com/jackc/pgx/v5"
 )
 
 type LinkService struct {
@@ -117,8 +119,11 @@ func (s *LinkService) CreateShortLink(ctx context.Context, userID int, req dto.C
 
 func (s *LinkService) DeleteLink(ctx context.Context, linkID int) error {
 	err := s.linkRepository.CheckDeletedLinkById(ctx, linkID)
-	if err != nil {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return appError.LinkNotFound
+	}
+	if err != nil {
+		return err
 	}
 
 	err = s.linkRepository.DeleteLinkById(ctx, linkID)
