@@ -15,5 +15,7 @@ var (
 	ForgotPasswordTokenExpired  = errors.New("token has expired")
 	ForgotPasswordTokenUsed     = errors.New("token has already been used")
 	LinkAlreadyExists           = errors.New("link already exists")
-	LinkNotFound                = errors.New("movie not found or already deleted")
+	LinkNotFound                = errors.New("link not found or already deleted")
+	OriginalLinkNotFound        = errors.New("original link not found")
+	SlugNotFound                = errors.New("Slug not found")
 )
