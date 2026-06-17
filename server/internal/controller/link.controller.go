@@ -96,3 +96,21 @@ func (c *LinkController) DeleteShortLink(ctx *gin.Context) {
 	}
 	response.Success(ctx, http.StatusOK, "delete success", nil)
 }
+
+func (c *LinkController) RedirectLink(ctx *gin.Context) {
+	slug := ctx.Param("slug")
+
+	originalLink, err := c.linkService.RedirectLink(ctx, slug)
+	if err != nil {
+		if errors.Is(err, appError.SlugNotFound) {
+			response.Error(ctx, http.StatusNotFound, err.Error())
+			return
+		}
+		if errors.Is(err, appError.OriginalLinkNotFound) {
+			response.Error(ctx, http.StatusNotFound, err.Error())
+			return
+		}
+		response.Error(ctx, http.StatusInternalServerError, "")
+	}
+	ctx.Redirect(http.StatusMovedPermanently, originalLink)
+}
