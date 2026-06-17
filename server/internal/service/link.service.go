@@ -128,3 +128,14 @@ func (s *LinkService) DeleteLink(ctx context.Context, linkID int) error {
 
 	return nil
 }
+
+func (s *LinkService) RedirectLink(ctx context.Context, slug string) (string, error) {
+	data, err := s.linkRepository.CheckOriginalLink(ctx, slug)
+	if err != nil {
+		return "", appError.SlugNotFound
+	}
+	if data.OriginalURL == "" {
+		return "", appError.OriginalLinkNotFound
+	}
+	return data.OriginalURL, nil
+}
