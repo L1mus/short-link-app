@@ -21,4 +21,5 @@ func LinkRouter(router *gin.Engine, db *pgxpool.Pool, rdb *redis.Client) {
 	linkRouter.GET("/", linkController.GetAllLinks)
 	linkRouter.POST("/", linkController.CreateShortLink)
 	linkRouter.DELETE("/:id", linkController.DeleteShortLink)
+	linkRouter.GET("/:slug", linkController.RedirectLink)
 }
