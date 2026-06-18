@@ -1,0 +1,80 @@
+name: short-link-app
+services:
+  web-server:
+    image: ghcr.io/l1mus/short-link-appclient:latest
+    ports:
+      - 200:80
+    depends_on:
+      - backend
+    networks:
+      - public_appnet
+    restart: unless-stopped
+  backend:
+    image: ghcr.io/l1mus/short-link-appserver:latest
+    env_file:
+      - .env.production
+    volumes:
+      - backend_assets:/app/public/img
+    depends_on:
+      - postgres
+      - redis
+    expose:
+      - "8080"
+    networks:
+      - public_appnet
+      - data_appnet
+    restart: unless-stopped
+  postgres:
+    image: postgres:18.3-alpine
+    env_file:
+      - .env.production
+    ports:
+      - 5432:5432
+    volumes:
+      - psqldata:/var/lib/postgresql/18/docker
+    networks:
+      - data_appnet
+    restart: unless-stopped
+  migrate:
+    image: migrate/migrate:v4.19.1
+    env_file:
+      - .env.production
+    networks:
+      - data_appnet
+    depends_on:
+      - postgres
+    restart: "no"
+    volumes:
+      - ./db/migrations:/migrations:ro
+    entrypoint: ["sh"]
+    command: ["-c", 'migrate -database "$$DB_URL" -path /migrations up']
+  seed:
+    image: postgres:18.3-alpine
+    env_file:
+      - .env.production
+    networks:
+      - data_appnet
+    depends_on:
+      - postgres
+    restart: "no"
+    volumes:
+      - ./db/seeds:/seeds:ro
+    tmpfs:
+      - /var/lib/postgresql # supaya ketika build tidak membuat volume baru untuk psqldata (jadinya menggunakan volume sementara di dalam container)
+    entrypoint: ["sh"]
+    command: ["-c", 'echo "Start seeding..."; for f in /seeds/*.sql; do echo "Applying seeder: $$f"; psql "$$DB_URL" -f "$$f"; done; echo "Seeding completed."']
+  redis:
+    build:
+      context: ./cache
+    volumes:
+      - rdata:/data
+    networks:
+      - data_appnet
+    restart: unless-stopped
+volumes:
+  backend_assets:
+  psqldata:
+  rdata:
+networks:
+  public_appnet:
+  data_appnet:
