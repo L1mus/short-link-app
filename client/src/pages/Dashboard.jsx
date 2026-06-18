@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router';
-import { toast } from 'react-toastify';
+import React, {useEffect, useState, useCallback} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+import {useNavigate} from 'react-router';
+import {toast} from 'react-toastify';
 
 import Header from '../components/layout/Header.jsx';
 import Footer from '../components/layout/Footer.jsx';
@@ -17,6 +17,7 @@ import {
     selectCurrentPage,
     selectTotalPages,
     selectLinkLoading,
+    incrementLocalClick,
 } from '../redux/slices/linkSlice.js';
 
 import iconCopy from '../assets/icons/copy.svg';
@@ -26,11 +27,11 @@ import iconChain from '../assets/icons/chain.svg';
 import iconChart from '../assets/icons/chart.svg';
 
 
-const CopyIcon = () => <img src={iconCopy} alt="copy" />;
-const TrashIcon = () => <img src={iconTrash} alt="delete" />;
-const LinkIcon = () => <img src={iconChain} alt="link" />;
-const CalendarIcon = () => <img src={iconCalender} alt="date" />;
-const ClickIcon = () => <img src={iconChart} alt="clicks" />;
+const CopyIcon = () => <img src={iconCopy} alt="copy"/>;
+const TrashIcon = () => <img src={iconTrash} alt="delete"/>;
+const LinkIcon = () => <img src={iconChain} alt="link"/>;
+const CalendarIcon = () => <img src={iconCalender} alt="date"/>;
+const ClickIcon = () => <img src={iconChart} alt="clicks"/>;
 
 
 const Dashboard = () => {
@@ -49,7 +50,7 @@ const Dashboard = () => {
 
     const loadLinks = useCallback(
         (page = 1, searchQuery = '') => {
-            dispatch(fetchLinksThunk({ page, search: searchQuery }));
+            dispatch(fetchLinksThunk({page, search: searchQuery}));
         },
         [dispatch]
     );
@@ -119,7 +120,7 @@ const Dashboard = () => {
 
     return (
         <div className="min-h-screen flex flex-col bg-[#f5f6fa]">
-            <Header />
+            <Header/>
 
             <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-10">
                 {/* Page header */}
@@ -158,8 +159,8 @@ const Dashboard = () => {
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                             >
-                                <circle cx="11" cy="11" r="8" />
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                <circle cx="11" cy="11" r="8"/>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                             </svg>
                         }
                     />
@@ -168,7 +169,8 @@ const Dashboard = () => {
                 {/* Links list */}
                 {isLoading ? (
                     <div className="flex justify-center py-20">
-                        <div className="w-6 h-6 rounded-full border-2 border-blue-primary border-t-transparent animate-spin" />
+                        <div
+                            className="w-6 h-6 rounded-full border-2 border-blue-primary border-t-transparent animate-spin"/>
                     </div>
                 ) : links.length === 0 ? (
                     <div className="text-center py-20 text-gray-400">
@@ -198,10 +200,13 @@ const Dashboard = () => {
                                         href={`${API_BASE_URL}/${link.slug}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
+                                        onClick={() => dispatch(incrementLocalClick(link.slug))}
                                         className="flex items-center gap-1.5 mb-1 w-fit hover:underline cursor-pointer"
                                     >
-                                        <LinkIcon />
-                                        <span className="text-sm font-semibold text-blue-primary truncate">{link.short_link}</span>
+                                        <LinkIcon/>
+                                        <span className="text-sm font-semibold text-blue-primary truncate">
+                                            {link.short_link}
+                                         </span>
                                     </a>
                                     {/* Original URL */}
                                     <a
@@ -216,11 +221,11 @@ const Dashboard = () => {
                                     {/* Meta */}
                                     <div className="flex items-center gap-3 text-xs text-gray-400">
                                         <span className="flex items-center gap-1">
-                                            <CalendarIcon />
+                                            <CalendarIcon/>
                                             {formatDate(link.created_at)}
                                         </span>
                                         <span className="flex items-center gap-1">
-                                            <ClickIcon />
+                                            <ClickIcon/>
                                             {formatClicks(link.click_count)} CLICKS
                                         </span>
                                     </div>
@@ -247,10 +252,10 @@ const Dashboard = () => {
                                                 strokeLinecap="round"
                                                 strokeLinejoin="round"
                                             >
-                                                <polyline points="20 6 9 17 4 12" />
+                                                <polyline points="20 6 9 17 4 12"/>
                                             </svg>
                                         ) : (
-                                            <CopyIcon />
+                                            <CopyIcon/>
                                         )}
                                     </button>
                                     <button
@@ -260,7 +265,7 @@ const Dashboard = () => {
                                         aria-label="Delete link"
                                         disabled={isLoading}
                                     >
-                                        <TrashIcon />
+                                        <TrashIcon/>
                                     </button>
                                 </div>
                             </div>
@@ -280,7 +285,8 @@ const Dashboard = () => {
                         </button>
 
                         <span className="flex items-center gap-2 text-sm text-gray-500">
-                            <span className="w-7 h-7 flex items-center justify-center rounded-md bg-blue-primary text-white font-semibold text-xs">
+                            <span
+                                className="w-7 h-7 flex items-center justify-center rounded-md bg-blue-primary text-white font-semibold text-xs">
                                 {currentPage}
                             </span>
                             of {totalPages}
@@ -297,7 +303,7 @@ const Dashboard = () => {
                 )}
             </main>
 
-            <Footer />
+            <Footer/>
         </div>
     );
 };
