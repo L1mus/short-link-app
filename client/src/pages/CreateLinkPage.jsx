@@ -22,6 +22,8 @@ const CreateLinkPage = () => {
     const navigate = useNavigate();
     const isLoading = useSelector(selectLinkLoading);
     const [slugPreview, setSlugPreview] = useState('my-custom-slug');
+    const location = useLocation();
+    const [, setDestinationUrl] = useState('');
 
     const {
         register,
@@ -63,6 +65,12 @@ const CreateLinkPage = () => {
             toast.error(result.payload || 'Failed to create link.');
         }
     };
+
+    useEffect(() => {
+        if (location.state?.destinationUrl) {
+            setDestinationUrl(location.state.destinationUrl);
+        }
+    }, [location]);
 
     return (
         <div className="min-h-screen flex flex-col bg-[#f5f6fa]">
