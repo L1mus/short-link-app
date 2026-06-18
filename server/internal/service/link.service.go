@@ -56,6 +56,7 @@ func (s *LinkService) GetAllLink(ctx context.Context, id int, req dto.PageQuery)
 	var links []dto.GetAllLinkResponse
 	for _, link := range data {
 		links = append(links, dto.GetAllLinkResponse{
+			ID:          link.ID,
 			UserId:      link.UserId,
 			ShortLink:   link.ShortLink,
 			OriginalURL: link.OriginalURL,
@@ -63,13 +64,13 @@ func (s *LinkService) GetAllLink(ctx context.Context, id int, req dto.PageQuery)
 			CreatedAt:   link.CreatedAt,
 		})
 	}
-	metaDataPAgination := dto.PaginationMetaData{
+	metaDataPagination := dto.PaginationMetaData{
 		TotalPages: totalPage,
 		TotalData:  totalData,
 		NextLink:   nextLink,
 		PrevLink:   prevLink,
 	}
-	return links, metaDataPAgination, nil
+	return links, metaDataPagination, nil
 }
 
 func (s *LinkService) CreateShortLink(ctx context.Context, userID int, req dto.CreateShortLinkRequest) (dto.CreateLinkResponse, error) {

@@ -27,7 +27,7 @@ func (r *LinkRepository) GetAllLink(ctx context.Context, UserId int, req dto.Pag
 	argCount := 1
 
 	sb.WriteString(`
-	SELECT u.id AS user_id, concat('shrt.lnk/',l.slug) AS short_link, l.original_url,l.click_count,l.created_at, COUNT(*) OVER() AS total_count
+	SELECT l.id,u.id AS user_id, concat('shrt.lnk/',l.slug) AS short_link, l.original_url,l.click_count,l.created_at, COUNT(*) OVER() AS total_count
 	FROM links l
 	JOIN users u ON u.id = l.user_id
 	WHERE l.deleted_at IS NULL AND u.id = $1
@@ -69,7 +69,7 @@ func (r *LinkRepository) GetAllLink(ctx context.Context, UserId int, req dto.Pag
 	defer rows.Close()
 	for rows.Next() {
 		var link model.GetAllLinks
-		if err := rows.Scan(&link.UserId, &link.ShortLink, &link.OriginalURL, &link.ClickCount, &link.CreatedAt, &link.TotalCount); err != nil {
+		if err := rows.Scan(&link.ID, &link.UserId, &link.ShortLink, &link.OriginalURL, &link.ClickCount, &link.CreatedAt, &link.TotalCount); err != nil {
 			return nil, err
 		}
 		data = append(data, link)

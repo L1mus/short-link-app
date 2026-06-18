@@ -63,6 +63,7 @@ type ForgotPasswordDTO struct {
 }
 
 type GetAllLinkResponse struct {
+	ID          int       `json:"id"`
 	UserId      int       `json:"user_id"`
 	ShortLink   string    `json:"short_link"`
 	OriginalURL string    `json:"original_link"`
