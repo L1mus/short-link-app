@@ -21,7 +21,7 @@ export const registerSchema = z
             .min(8, 'Password must be at least 8 characters'),
         confirm_password: z
             .string()
-            .min(1, 'Password confirmation is required.'),
+            .min(1, 'Confirm Password is required'),
     })
     .refine((data) => data.password === data.confirm_password, {
         message: 'Passwords do not match',
@@ -37,13 +37,13 @@ export const forgotPasswordSchema = z.object({
 
 export const resetPasswordSchema = z
     .object({
-        token: z.string().min(1, 'Token wajib diisi'),
+        token: z.string().min(1, 'Token is required'),
         new_password: z
             .string()
             .min(8, 'Password must be at least 8 characters'),
         confirm_password: z
             .string()
-            .min(1, 'Password confirmation is required.'),
+            .min(1, 'Confirm Password is required'),
     })
     .refine((data) => data.new_password === data.confirm_password, {
         message: 'Passwords do not match',
