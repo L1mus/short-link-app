@@ -25,7 +25,6 @@ import iconCalender from '../assets/icons/calender.svg';
 import iconChain from '../assets/icons/chain.svg';
 import iconChart from '../assets/icons/chart.svg';
 
-// ─── Icon helpers ─────────────────────────────────────────────────────────────
 
 const CopyIcon = () => <img src={iconCopy} alt="copy" />;
 const TrashIcon = () => <img src={iconTrash} alt="delete" />;
@@ -33,7 +32,6 @@ const LinkIcon = () => <img src={iconChain} alt="link" />;
 const CalendarIcon = () => <img src={iconCalender} alt="date" />;
 const ClickIcon = () => <img src={iconChart} alt="clicks" />;
 
-// ─── Component ────────────────────────────────────────────────────────────────
 
 const Dashboard = () => {
     const dispatch = useDispatch();
@@ -46,6 +44,8 @@ const Dashboard = () => {
     const currentPage = useSelector(selectCurrentPage);
     const totalPages = useSelector(selectTotalPages);
     const isLoading = useSelector(selectLinkLoading);
+
+    console.log(links)
 
     const loadLinks = useCallback(
         (page = 1, searchQuery = '') => {
@@ -78,9 +78,11 @@ const Dashboard = () => {
         }
     };
 
-    const handleCopy = (shortLink, id) => {
+    const handleCopy = (slug, id) => {
+        const fullShortUrl = `${API_BASE_URL}/${slug}`;
+
         navigator.clipboard
-            .writeText(`https://${shortLink}`)
+            .writeText(fullShortUrl)
             .then(() => {
                 setCopiedId(id);
                 toast.success('Link copied to clipboard!');
@@ -112,6 +114,8 @@ const Dashboard = () => {
 
     const formatClicks = (n) =>
         n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n);
+
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
     return (
         <div className="min-h-screen flex flex-col bg-[#f5f6fa]">
@@ -190,16 +194,25 @@ const Dashboard = () => {
                             >
                                 <div className="min-w-0 flex-1">
                                     {/* Short link */}
-                                    <div className="flex items-center gap-1.5 mb-1">
+                                    <a
+                                        href={`${API_BASE_URL}/${link.slug}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-1.5 mb-1 w-fit hover:underline cursor-pointer"
+                                    >
                                         <LinkIcon />
-                                        <span className="text-sm font-semibold text-blue-primary truncate">
-                                            {link.short_link}
-                                        </span>
-                                    </div>
+                                        <span className="text-sm font-semibold text-blue-primary truncate">{link.short_link}</span>
+                                    </a>
                                     {/* Original URL */}
-                                    <p className="text-xs text-gray-400 truncate mb-2">
+                                    <a
+                                        href={link.original_link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-gray-400 truncate mb-2 block hover:text-gray-600 hover:underline cursor-pointer"
+                                        title={link.original_link}
+                                    >
                                         {link.original_link}
-                                    </p>
+                                    </a>
                                     {/* Meta */}
                                     <div className="flex items-center gap-3 text-xs text-gray-400">
                                         <span className="flex items-center gap-1">
@@ -217,7 +230,7 @@ const Dashboard = () => {
                                 <div className="flex items-center gap-2 shrink-0">
                                     <button
                                         onClick={() =>
-                                            handleCopy(link.short_link, link.short_link)
+                                            handleCopy(link.slug, link.id)
                                         }
                                         className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 hover:bg-blue-50 text-gray-400 hover:text-blue-primary transition-colors"
                                         title="Copy link"
