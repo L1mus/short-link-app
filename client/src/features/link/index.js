@@ -1,5 +1,4 @@
 // Components
-export { default as AuthLayout } from './components/AuthLayout.jsx';
 
 // API
 export * from './api/service.js';
