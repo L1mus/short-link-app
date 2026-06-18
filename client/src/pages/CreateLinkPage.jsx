@@ -4,21 +4,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, Link } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import slugify from 'slugify';
+import { toast } from 'react-toastify';
 
 import Header from '../components/layout/Header.jsx';
 import Footer from '../components/layout/Footer.jsx';
 import Input from '../components/ui/Input.jsx';
 import Button from '../components/ui/Button.jsx';
 import { createLinkSchema } from '../features/auth/index.js';
-import { createLinkApi } from '../features/link/index.js';
-import {
-    createLinkStart,
-    createLinkSuccess,
-    createLinkFailure,
-    selectLinkLoading,
-} from '../redux/slices/linkSlice.js';
+import { createLinkThunk, selectLinkLoading } from '../redux/slices/linkSlice.js';
 
-import iconThunder from '../assets/icons/thunder.svg'
+import iconThunder from '../assets/icons/thunder.svg';
 
 const BASE_DOMAIN = 'short.link/';
 
@@ -26,7 +21,6 @@ const CreateLinkPage = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const isLoading = useSelector(selectLinkLoading);
-    const [serverError, setServerError] = useState(null);
     const [slugPreview, setSlugPreview] = useState('my-custom-slug');
 
     const {
@@ -55,19 +49,18 @@ const CreateLinkPage = () => {
     }, [watchedSlug]);
 
     const onSubmit = async (data) => {
-        setServerError(null);
-        dispatch(createLinkStart());
-        try {
-            const res = await createLinkApi({
+        const result = await dispatch(
+            createLinkThunk({
                 original_url: data.original_url,
                 optional_slug: data.optional_slug || undefined,
-            });
-            dispatch(createLinkSuccess(res.data.data));
+            })
+        );
+
+        if (createLinkThunk.fulfilled.match(result)) {
+            toast.success('Short link created successfully!');
             navigate('/dashboard');
-        } catch (err) {
-            const message = err.response?.data?.message || 'failed to load link.';
-            dispatch(createLinkFailure(message));
-            setServerError(message);
+        } else {
+            toast.error(result.payload || 'Failed to create link.');
         }
     };
 
@@ -81,7 +74,16 @@ const CreateLinkPage = () => {
                     to="/dashboard"
                     className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-primary hover:underline mb-5"
                 >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    >
                         <line x1="19" y1="12" x2="5" y2="12" />
                         <polyline points="12 19 5 12 12 5" />
                     </svg>
@@ -90,7 +92,9 @@ const CreateLinkPage = () => {
 
                 {/* Heading */}
                 <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">Create New Short Link</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        Create New Short Link
+                    </h1>
                     <p className="text-sm text-gray-400 mt-0.5">
                         Transform your long URLs into clean, manageable assets.
                     </p>
@@ -100,13 +104,6 @@ const CreateLinkPage = () => {
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-7">
                     <form onSubmit={handleSubmit(onSubmit)} noValidate>
                         <div className="flex flex-col gap-6">
-                            {/* Server error */}
-                            {serverError && (
-                                <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
-                                    {serverError}
-                                </div>
-                            )}
-
                             {/* Destination URL */}
                             <div>
                                 <label className="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">
@@ -118,7 +115,16 @@ const CreateLinkPage = () => {
                                     placeholder="https://example.com/your-long-url-here"
                                     error={errors.original_url?.message}
                                     prefix={
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <svg
+                                            width="14"
+                                            height="14"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
                                             <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
                                             <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
                                         </svg>
@@ -136,9 +142,10 @@ const CreateLinkPage = () => {
                             <div>
                                 <label className="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-2">
                                     Custom Slug{' '}
-                                    <span className="text-gray-400 font-normal normal-case">(Optional)</span>
+                                    <span className="text-gray-400 font-normal normal-case">
+                                        (Optional)
+                                    </span>
                                 </label>
-                                {/* Prefix domain + input */}
                                 <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-blue-primary focus-within:border-transparent">
                                     <span className="px-3 py-2.5 bg-gray-50 border-r border-gray-200 text-sm text-gray-500 whitespace-nowrap select-none">
                                         {BASE_DOMAIN}
@@ -164,7 +171,16 @@ const CreateLinkPage = () => {
                             {/* Live preview */}
                             <div className="rounded-xl bg-bg-primary border border-blue-100 px-5 py-4">
                                 <div className="flex items-center gap-2 mb-1.5">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#004AC6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="#004AC6"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
                                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                                         <circle cx="12" cy="12" r="3" />
                                     </svg>
@@ -175,7 +191,8 @@ const CreateLinkPage = () => {
                                 <p className="text-sm text-gray-600">
                                     Your short link will be:{' '}
                                     <span className="font-semibold text-blue-primary">
-                                        https://{BASE_DOMAIN}{slugPreview}
+                                        https://{BASE_DOMAIN}
+                                        {slugPreview}
                                     </span>
                                 </p>
                             </div>
@@ -187,7 +204,7 @@ const CreateLinkPage = () => {
                                     isLoading={isLoading}
                                     leftIcon={
                                         !isLoading && (
-                                            <img src={iconThunder} alt="thunder"/>
+                                            <img src={iconThunder} alt="" />
                                         )
                                     }
                                 >

@@ -1,20 +1,16 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
+import { toast } from 'react-toastify';
 
 import Header from '../components/layout/Header.jsx';
 import Footer from '../components/layout/Footer.jsx';
 import Button from '../components/ui/Button.jsx';
 import Input from '../components/ui/Input.jsx';
 
-import { getLinksApi } from '../features/link/index.js';
 import {
-    fetchLinksStart,
-    fetchLinksSuccess,
-    fetchLinksFailure,
-    deleteLinkStart,
-    deleteLinkSuccess,
-    deleteLinkFailure,
+    fetchLinksThunk,
+    deleteLinkThunk,
     setCurrentPage,
     selectLinks,
     selectTotalLinks,
@@ -22,35 +18,22 @@ import {
     selectTotalPages,
     selectLinkLoading,
 } from '../redux/slices/linkSlice.js';
-import { deleteLinkApi } from '../features/link/index.js';
 
-import iconCopy from '../assets/icons/copy.svg'
-import iconTrash from '../assets/icons/trash.svg'
-import iconCalender from  '../assets/icons/calender.svg'
-import iconChain from  '../assets/icons/chain.svg'
-import iconChart from  '../assets/icons/chart.svg'
+import iconCopy from '../assets/icons/copy.svg';
+import iconTrash from '../assets/icons/trash.svg';
+import iconCalender from '../assets/icons/calender.svg';
+import iconChain from '../assets/icons/chain.svg';
+import iconChart from '../assets/icons/chart.svg';
 
+// ─── Icon helpers ─────────────────────────────────────────────────────────────
 
+const CopyIcon = () => <img src={iconCopy} alt="copy" />;
+const TrashIcon = () => <img src={iconTrash} alt="delete" />;
+const LinkIcon = () => <img src={iconChain} alt="link" />;
+const CalendarIcon = () => <img src={iconCalender} alt="date" />;
+const ClickIcon = () => <img src={iconChart} alt="clicks" />;
 
-const CopyIcon = () => (
-    <img src={iconCopy} alt="copy"/>
-);
-
-const TrashIcon = () => (
-    <img src={iconTrash} alt=""/>
-);
-
-const LinkIcon = () => (
-    <img src={iconChain} alt=""/>
-);
-
-const CalendarIcon = () => (
-    <img src={iconCalender} alt="link"/>
-);
-
-const ClickIcon = () => (
-    <img src={iconChart} alt=""/>
-);
+// ─── Component ────────────────────────────────────────────────────────────────
 
 const Dashboard = () => {
     const dispatch = useDispatch();
@@ -64,62 +47,71 @@ const Dashboard = () => {
     const totalPages = useSelector(selectTotalPages);
     const isLoading = useSelector(selectLinkLoading);
 
-    const loadLinks = useCallback(async (page = 1, searchQuery = '') => {
-        dispatch(fetchLinksStart());
-        try {
-            const res = await getLinksApi({ page, search: searchQuery });
-            const { data, meta } = res.data;
-            dispatch(
-                fetchLinksSuccess({
-                    links: data || [],
-                    totalLinks: meta?.total_data || 0,
-                    currentPage: page,
-                    totalPages: meta?.['total-page'] || 1,
-                }),
-            );
-        } catch (err) {
-            dispatch(fetchLinksFailure(err.response?.data?.message || 'Gagal memuat data'));
-        }
-    }, [dispatch]);
+    const loadLinks = useCallback(
+        (page = 1, searchQuery = '') => {
+            dispatch(fetchLinksThunk({ page, search: searchQuery }));
+        },
+        [dispatch]
+    );
 
+    // Initial load
     useEffect(() => {
         loadLinks(currentPage, search);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Debounce search
+    // Debounced search
     useEffect(() => {
         const timer = setTimeout(() => {
             loadLinks(1, search);
         }, 400);
         return () => clearTimeout(timer);
-    }, [search]);
+    }, [search, loadLinks]);
 
     const handleDelete = async (linkId) => {
-        if (!window.confirm('delete this link?')) return;
-        dispatch(deleteLinkStart());
-        try {
-            await deleteLinkApi(linkId);
-            dispatch(deleteLinkSuccess(linkId));
-        } catch (err) {
-            dispatch(deleteLinkFailure(err.response?.data?.message || 'Failed to delete'));
+        if (!window.confirm('Delete this link? This action cannot be undone.')) return;
+        const result = await dispatch(deleteLinkThunk(linkId));
+        if (deleteLinkThunk.fulfilled.match(result)) {
+            toast.success('Link deleted successfully.');
+        } else {
+            toast.error(result.payload || 'Failed to delete link.');
         }
     };
 
     const handleCopy = (shortLink, id) => {
-        navigator.clipboard.writeText(`https://${shortLink}`);
-        setCopiedId(id);
-        setTimeout(() => setCopiedId(null), 1500);
+        navigator.clipboard
+            .writeText(`https://${shortLink}`)
+            .then(() => {
+                setCopiedId(id);
+                toast.success('Link copied to clipboard!');
+                setTimeout(() => setCopiedId(null), 1500);
+            })
+            .catch(() => toast.error('Could not copy link.'));
     };
 
-    const formatDate = (dateStr) => {
-        return new Date(dateStr).toLocaleDateString('en-US', {
-            month: 'short',
-            day: '2-digit',
-            year: 'numeric',
-        }).toUpperCase();
+    const handlePrevPage = () => {
+        const prev = currentPage - 1;
+        dispatch(setCurrentPage(prev));
+        loadLinks(prev, search);
     };
 
-    const formatClicks = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}K` : n);
+    const handleNextPage = () => {
+        const next = currentPage + 1;
+        dispatch(setCurrentPage(next));
+        loadLinks(next, search);
+    };
+
+    const formatDate = (dateStr) =>
+        new Date(dateStr)
+            .toLocaleDateString('en-US', {
+                month: 'short',
+                day: '2-digit',
+                year: 'numeric',
+            })
+            .toUpperCase();
+
+    const formatClicks = (n) =>
+        n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n);
 
     return (
         <div className="min-h-screen flex flex-col bg-[#f5f6fa]">
@@ -152,7 +144,16 @@ const Dashboard = () => {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         prefix={
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
                                 <circle cx="11" cy="11" r="8" />
                                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
                             </svg>
@@ -167,7 +168,11 @@ const Dashboard = () => {
                     </div>
                 ) : links.length === 0 ? (
                     <div className="text-center py-20 text-gray-400">
-                        <p className="text-sm">Belum ada link. Buat link pertamamu!</p>
+                        <p className="text-sm">
+                            {search
+                                ? 'No links matched your search.'
+                                : 'No links yet. Create your first short link!'}
+                        </p>
                         <Button
                             className="mt-4"
                             size="sm"
@@ -211,12 +216,24 @@ const Dashboard = () => {
                                 {/* Actions */}
                                 <div className="flex items-center gap-2 shrink-0">
                                     <button
-                                        onClick={() => handleCopy(link.short_link, link.short_link)}
+                                        onClick={() =>
+                                            handleCopy(link.short_link, link.short_link)
+                                        }
                                         className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 hover:bg-blue-50 text-gray-400 hover:text-blue-primary transition-colors"
                                         title="Copy link"
+                                        aria-label="Copy short link"
                                     >
                                         {copiedId === link.short_link ? (
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <svg
+                                                width="14"
+                                                height="14"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            >
                                                 <polyline points="20 6 9 17 4 12" />
                                             </svg>
                                         ) : (
@@ -226,7 +243,9 @@ const Dashboard = () => {
                                     <button
                                         onClick={() => handleDelete(link.id)}
                                         className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
-                                        title="Hapus link"
+                                        title="Delete link"
+                                        aria-label="Delete link"
+                                        disabled={isLoading}
                                     >
                                         <TrashIcon />
                                     </button>
@@ -240,15 +259,11 @@ const Dashboard = () => {
                 {totalPages > 1 && (
                     <div className="flex items-center justify-between mt-8">
                         <button
-                            onClick={() => {
-                                const prev = currentPage - 1;
-                                dispatch(setCurrentPage(prev));
-                                loadLinks(prev, search);
-                            }}
-                            disabled={currentPage <= 1}
+                            onClick={handlePrevPage}
+                            disabled={currentPage <= 1 || isLoading}
                             className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         >
-                            &lt; Prev Page
+                            &lt; Prev
                         </button>
 
                         <span className="flex items-center gap-2 text-sm text-gray-500">
@@ -259,12 +274,8 @@ const Dashboard = () => {
                         </span>
 
                         <button
-                            onClick={() => {
-                                const next = currentPage + 1;
-                                dispatch(setCurrentPage(next));
-                                loadLinks(next, search);
-                            }}
-                            disabled={currentPage >= totalPages}
+                            onClick={handleNextPage}
+                            disabled={currentPage >= totalPages || isLoading}
                             className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         >
                             Next &gt;

@@ -1,58 +1,54 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
+import { toast } from 'react-toastify';
 
 import Header from '../components/layout/Header.jsx';
 import Footer from '../components/layout/Footer.jsx';
 import Button from '../components/ui/Button.jsx';
 
 import {
-    fetchProfileStart,
-    fetchProfileSuccess,
-    fetchProfileFailure,
+    fetchProfileThunk,
     selectProfile,
     selectUserLoading,
+    selectUserError,
+    clearUserError,
 } from '../redux/slices/userSlice.js';
 import { logout } from '../redux/slices/authSlice.js';
 import { resetLinks } from '../redux/slices/linkSlice.js';
-import api from '../service/api.js';
 
-import iconPencil from '../assets/icons/pencil.svg'
-import iconBell from '../assets/icons/bell.svg'
-import iconshild from '../assets/icons/shild.svg'
-import iconchain from '../assets/icons/chain.svg'
-
-
+import iconPencil from '../assets/icons/pencil.svg';
+import iconBell from '../assets/icons/bell.svg';
+import iconShield from '../assets/icons/shild.svg';
+import iconChain from '../assets/icons/chain.svg';
 
 const Profile = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const profile = useSelector(selectProfile);
     const isLoading = useSelector(selectUserLoading);
+    const profileError = useSelector(selectUserError);
 
     useEffect(() => {
-        const fetchProfile = async () => {
-            dispatch(fetchProfileStart());
-            try {
-                const res = await api.get('/users/profile');
-                dispatch(fetchProfileSuccess(res.data.data));
-            } catch (err) {
-                dispatch(fetchProfileFailure(err.response?.data?.message || 'Failed create profile'));
-            }
-        };
-        fetchProfile();
+        dispatch(fetchProfileThunk());
     }, [dispatch]);
+
+    useEffect(() => {
+        if (profileError) {
+            toast.error(profileError);
+            dispatch(clearUserError());
+        }
+    }, [profileError, dispatch]);
 
     const handleLogout = () => {
         dispatch(logout());
         dispatch(resetLinks());
+        toast.success('You have been signed out.');
         navigate('/login');
     };
 
-    console.log(profile)
-
     const formatDate = (dateStr) => {
-        if (!dateStr) return '-';
+        if (!dateStr) return '—';
         return new Date(dateStr).toLocaleDateString('en-US', {
             month: 'long',
             day: 'numeric',
@@ -65,7 +61,6 @@ const Profile = () => {
             <Header />
 
             <main className="flex-1 max-w-2xl mx-auto w-full px-6 py-10">
-                {/* Section label */}
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">
                     Account Management
                 </p>
@@ -100,9 +95,11 @@ const Profile = () => {
                                         </span>
                                     )}
                                 </div>
-                                {/* Edit button */}
-                                <button className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors">
-                                    <img src={iconPencil} alt="edit"/>
+                                <button
+                                    className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors"
+                                    aria-label="Edit avatar"
+                                >
+                                    <img src={iconPencil} alt="" />
                                 </button>
                             </div>
                             <div>
@@ -120,15 +117,15 @@ const Profile = () => {
                                     Email Address
                                 </p>
                                 <p className="text-sm font-medium text-gray-700 truncate">
-                                    {profile?.email || '-'}
+                                    {profile?.email || '—'}
                                 </p>
                             </div>
                             <div className="rounded-xl bg-gray-50 px-4 py-3">
                                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">
-                                    Account Tenure
+                                    Member Since
                                 </p>
                                 <p className="text-sm font-medium text-gray-700">
-                                    Member since: {formatDate(profile?.created_at)}
+                                    {formatDate(profile?.created_at)}
                                 </p>
                             </div>
                         </div>
@@ -137,7 +134,7 @@ const Profile = () => {
                         <div className="rounded-xl bg-blue-primary px-5 py-4 flex items-center justify-between mb-5">
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-                                    <img src={iconchain} alt=""/>
+                                    <img src={iconChain} alt="" />
                                 </div>
                                 <div>
                                     <p className="text-xs text-blue-200 uppercase tracking-widest font-semibold">
@@ -163,12 +160,11 @@ const Profile = () => {
                             {/* Email Notifications */}
                             <div className="flex items-center justify-between py-4">
                                 <div className="flex items-center gap-3">
-                                    <img src={iconBell} alt="notification"/>
+                                    <img src={iconBell} alt="" />
                                     <span className="text-sm font-medium text-gray-700">
                                         Email Notifications
                                     </span>
                                 </div>
-                                {/* Toggle — visual only, extend sesuai kebutuhan */}
                                 <div className="w-10 h-6 rounded-full bg-blue-primary flex items-center justify-end px-1 cursor-pointer">
                                     <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
                                 </div>
@@ -177,7 +173,7 @@ const Profile = () => {
                             {/* 2FA */}
                             <div className="flex items-center justify-between py-4">
                                 <div className="flex items-center gap-3">
-                                    <img src={iconshild} alt=""/>
+                                    <img src={iconShield} alt="" />
                                     <span className="text-sm font-medium text-gray-700">
                                         Two-Factor Authentication
                                     </span>
@@ -194,17 +190,25 @@ const Profile = () => {
                             fullWidth
                             onClick={handleLogout}
                             leftIcon={
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                >
                                     <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
                                     <polyline points="16 17 21 12 16 7" />
                                     <line x1="21" y1="12" x2="9" y2="12" />
                                 </svg>
                             }
                         >
-                            Logout Session
+                            Sign Out
                         </Button>
 
-                        {/* Encryption note */}
                         <p className="text-xs text-gray-400 text-center mt-4">
                             Your data is encrypted using AES-256 standards.{' '}
                             <a href="/privacy" className="text-blue-primary hover:underline">
