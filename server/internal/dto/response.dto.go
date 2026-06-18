@@ -67,6 +67,7 @@ type GetAllLinkResponse struct {
 	UserId      int       `json:"user_id"`
 	ShortLink   string    `json:"short_link"`
 	OriginalURL string    `json:"original_link"`
+	Slug        string    `json:"slug"`
 	ClickCount  int       `json:"click_count"`
 	CreatedAt   time.Time `json:"created_at"`
 }

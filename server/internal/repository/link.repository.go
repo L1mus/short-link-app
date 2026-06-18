@@ -27,7 +27,7 @@ func (r *LinkRepository) GetAllLink(ctx context.Context, UserId int, req dto.Pag
 	argCount := 1
 
 	sb.WriteString(`
-	SELECT l.id,u.id AS user_id, concat('shrt.lnk/',l.slug) AS short_link, l.original_url,l.click_count,l.created_at, COUNT(*) OVER() AS total_count
+	SELECT l.id,u.id AS user_id, concat('shrt.lnk/',l.slug) AS short_link, l.original_url,l.slug,l.click_count,l.created_at, COUNT(*) OVER() AS total_count
 	FROM links l
 	JOIN users u ON u.id = l.user_id
 	WHERE l.deleted_at IS NULL AND u.id = $1
@@ -69,7 +69,7 @@ func (r *LinkRepository) GetAllLink(ctx context.Context, UserId int, req dto.Pag
 	defer rows.Close()
 	for rows.Next() {
 		var link model.GetAllLinks
-		if err := rows.Scan(&link.ID, &link.UserId, &link.ShortLink, &link.OriginalURL, &link.ClickCount, &link.CreatedAt, &link.TotalCount); err != nil {
+		if err := rows.Scan(&link.ID, &link.UserId, &link.ShortLink, &link.OriginalURL, &link.Slug, &link.ClickCount, &link.CreatedAt, &link.TotalCount); err != nil {
 			return nil, err
 		}
 		data = append(data, link)
@@ -140,4 +140,15 @@ func (r *LinkRepository) CheckOriginalLink(ctx context.Context, slug string) (mo
 		return model.Links{}, err
 	}
 	return data, nil
+}
+
+func (r *LinkRepository) ClickCountIncrement(ctx context.Context, slug string) error {
+	sql := `UPDATE links SET click_count = click_count + 1 WHERE slug = $1 AND deleted_at IS NULL`
+
+	_, err := r.db.Exec(ctx, sql, slug)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

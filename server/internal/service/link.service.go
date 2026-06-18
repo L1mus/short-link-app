@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"math"
 	"strconv"
 
@@ -60,17 +61,18 @@ func (s *LinkService) GetAllLink(ctx context.Context, id int, req dto.PageQuery)
 			UserId:      link.UserId,
 			ShortLink:   link.ShortLink,
 			OriginalURL: link.OriginalURL,
+			Slug:        link.Slug,
 			ClickCount:  link.ClickCount,
 			CreatedAt:   link.CreatedAt,
 		})
 	}
-	metaDataPagination := dto.PaginationMetaData{
+	metaDataPAgination := dto.PaginationMetaData{
 		TotalPages: totalPage,
 		TotalData:  totalData,
 		NextLink:   nextLink,
 		PrevLink:   prevLink,
 	}
-	return links, metaDataPagination, nil
+	return links, metaDataPAgination, nil
 }
 
 func (s *LinkService) CreateShortLink(ctx context.Context, userID int, req dto.CreateShortLinkRequest) (dto.CreateLinkResponse, error) {
@@ -143,5 +145,14 @@ func (s *LinkService) RedirectLink(ctx context.Context, slug string) (string, er
 	if data.OriginalURL == "" {
 		return "", appError.OriginalLinkNotFound
 	}
+
+	// background process
+	go func() {
+		err := s.linkRepository.ClickCountIncrement(context.Background(), slug)
+		if err != nil {
+			log.Printf("Failed to increment click count for slug %s: %v\n", slug, err)
+		}
+	}()
+
 	return data.OriginalURL, nil
 }
