@@ -6,6 +6,7 @@ import { selectIsAuthenticated } from './redux/slices/authSlice.js';
 // Pages
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
+import LandingPage from './pages/LandingPage.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import CreateLinkPage from './pages/CreateLinkPage.jsx';
 import Profile from './pages/Profile.jsx';
@@ -32,6 +33,14 @@ const App = () => {
         <BrowserRouter>
             <Routes>
                 {/* Public routes */}
+                <Route
+                    path="/"
+                    element={
+                        <PublicRoute>
+                            <LandingPage />
+                        </PublicRoute>
+                    }
+                />
                 <Route
                     path="/login"
                     element={
