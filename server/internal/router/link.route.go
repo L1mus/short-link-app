@@ -10,7 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func LinkRouter(router *gin.Engine, db *pgxpool.Pool, rdb *redis.Client) {
+func LinkRouter(router *gin.RouterGroup, db *pgxpool.Pool, rdb *redis.Client) {
 	linkRouter := router.Group("/links")
 	linkRouter.Use(middleware.VerifyToken, middleware.CheckBlacklist(rdb))
 

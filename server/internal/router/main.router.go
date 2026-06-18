@@ -22,15 +22,15 @@ func InitRouter(router *gin.Engine, db *pgxpool.Pool, rdb *redis.Client) {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// router.METHOD(endpoint, callback)
 	router.Static("/img", "public/img")
-
+	routeApi := router.Group("/api")
 	linkRepository := repository.NewLinkRepository(db)
 	linkService := service.NewLinkService(linkRepository)
 	linkController := controller.NewLinkController(linkService)
-	router.GET("/:slug", linkController.RedirectLink)
+	routeApi.GET("/:slug", linkController.RedirectLink)
 
-	AuthRouter(router, db, rdb)
-	UserRouter(router, db, rdb)
-	LinkRouter(router, db, rdb)
+	AuthRouter(routeApi, db, rdb)
+	UserRouter(routeApi, db, rdb)
+	LinkRouter(routeApi, db, rdb)
 
 	//fallback
 	router.NoRoute(func(ctx *gin.Context) {
