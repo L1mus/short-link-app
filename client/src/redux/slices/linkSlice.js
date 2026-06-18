@@ -1,4 +1,59 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { getLinksApi, createLinkApi, deleteLinkApi } from '../../features/link/index.js';
+
+// Async Thunks
+export const fetchLinksThunk = createAsyncThunk(
+    'link/fetchLinks',
+    async ({ page = 1, search = '' } = {}, { rejectWithValue }) => {
+        try {
+            const res = await getLinksApi({ page, search });
+            const { data, meta } = res.data;
+            return {
+                links: data || [],
+                totalLinks: meta?.total_data || 0,
+                currentPage: page,
+                totalPages: meta?.['total-page'] || 1,
+            };
+        } catch (err) {
+            return rejectWithValue(
+                err.response?.data?.message || 'Failed to load links.'
+            );
+        }
+    }
+);
+
+export const createLinkThunk = createAsyncThunk(
+    'link/createLink',
+    async ({ original_url, optional_slug }, { rejectWithValue }) => {
+        try {
+            const res = await createLinkApi({
+                original_url,
+                optional_slug: optional_slug || undefined,
+            });
+            return res.data.data;
+        } catch (err) {
+            return rejectWithValue(
+                err.response?.data?.message || 'Failed to create link.'
+            );
+        }
+    }
+);
+
+export const deleteLinkThunk = createAsyncThunk(
+    'link/deleteLink',
+    async (linkId, { rejectWithValue }) => {
+        try {
+            await deleteLinkApi(linkId);
+            return linkId;
+        } catch (err) {
+            return rejectWithValue(
+                err.response?.data?.message || 'Failed to delete link.'
+            );
+        }
+    }
+);
+
+// Initial State
 
 const initialState = {
     links: [],
@@ -10,95 +65,88 @@ const initialState = {
     selectedLink: null,
 };
 
+// Slice
+
 const linkSlice = createSlice({
     name: 'link',
     initialState,
     reducers: {
-        // Fetch all links
-        fetchLinksStart(state) {
-            state.isLoading = true;
-            state.error = null;
-        },
-        fetchLinksSuccess(state, action) {
-            state.isLoading = false;
-            state.links = action.payload.links;
-            state.totalLinks = action.payload.totalLinks;
-            state.currentPage = action.payload.currentPage;
-            state.totalPages = action.payload.totalPages;
-            state.error = null;
-        },
-        fetchLinksFailure(state, action) {
-            state.isLoading = false;
-            state.error = action.payload;
-        },
-
-        // Create link
-        createLinkStart(state) {
-            state.isLoading = true;
-            state.error = null;
-        },
-        createLinkSuccess(state, action) {
-            state.isLoading = false;
-            state.links = [action.payload, ...state.links];
-            state.totalLinks += 1;
-            state.error = null;
-        },
-        createLinkFailure(state, action) {
-            state.isLoading = false;
-            state.error = action.payload;
-        },
-
-        // Delete link
-        deleteLinkStart(state) {
-            state.isLoading = true;
-            state.error = null;
-        },
-        deleteLinkSuccess(state, action) {
-            state.isLoading = false;
-            state.links = state.links.filter((link) => link._id !== action.payload);
-            state.totalLinks -= 1;
-            state.error = null;
-        },
-        deleteLinkFailure(state, action) {
-            state.isLoading = false;
-            state.error = action.payload;
-        },
-
-        // Select a single link (for detail/edit)
         setSelectedLink(state, action) {
             state.selectedLink = action.payload;
         },
         clearSelectedLink(state) {
             state.selectedLink = null;
         },
-
-        // Set page
         setCurrentPage(state, action) {
             state.currentPage = action.payload;
         },
-
-        // Clear errors
         clearLinkError(state) {
             state.error = null;
         },
-
-        // Reset state on logout
         resetLinks(state) {
             Object.assign(state, initialState);
         },
     },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchLinksThunk.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(fetchLinksThunk.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.links = action.payload.links;
+                state.totalLinks = action.payload.totalLinks;
+                state.currentPage = action.payload.currentPage;
+                state.totalPages = action.payload.totalPages;
+                state.error = null;
+            })
+            .addCase(fetchLinksThunk.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+            });
+
+        // Create link
+        builder
+            .addCase(createLinkThunk.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(createLinkThunk.fulfilled, (state, action) => {
+                state.isLoading = false;
+                if (action.payload) {
+                    state.links = [action.payload, ...state.links];
+                    state.totalLinks += 1;
+                }
+                state.error = null;
+            })
+            .addCase(createLinkThunk.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+            });
+
+        // Delete link
+        builder
+            .addCase(deleteLinkThunk.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(deleteLinkThunk.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.links = state.links.filter(
+                    (link) => link.id !== action.payload
+                );
+                state.totalLinks = Math.max(0, state.totalLinks - 1);
+                state.error = null;
+            })
+            .addCase(deleteLinkThunk.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+            });
+    },
 });
 
 export const {
-    fetchLinksStart,
-    fetchLinksSuccess,
-    fetchLinksFailure,
-    createLinkStart,
-    createLinkSuccess,
-    createLinkFailure,
-    deleteLinkStart,
-    deleteLinkSuccess,
-    deleteLinkFailure,
     setSelectedLink,
     clearSelectedLink,
     setCurrentPage,
@@ -107,6 +155,7 @@ export const {
 } = linkSlice.actions;
 
 // Selectors
+
 export const selectLinks = (state) => state.link.links;
 export const selectTotalLinks = (state) => state.link.totalLinks;
 export const selectCurrentPage = (state) => state.link.currentPage;
