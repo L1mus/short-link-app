@@ -11,6 +11,8 @@ import {
 } from 'redux-persist';
 import storage from 'redux-persist/es/storage';
 import authReducer from './slices/authSlice.js';
+import linkReducer from './slices/linkSlice.js';
+import userReducer from './slices/userSlice.js';
 
 // import env from "../utils/environment";
 
@@ -27,6 +29,8 @@ const authPersistConfig = {
 };
 const rootReducer = combineReducers({
     auth: persistReducer(authPersistConfig, authReducer),
+    link: linkReducer,
+    user: userReducer,
 });
 
 export const store = configureStore({
@@ -42,4 +46,3 @@ export const store = configureStore({
 });
 
 export const persistor = persistStore(store);
-// export default store;
