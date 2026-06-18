@@ -86,6 +86,15 @@ const linkSlice = createSlice({
         resetLinks(state) {
             Object.assign(state, initialState);
         },
+        incrementLocalClick(state, action) {
+            const clickedShortLink = action.payload;
+            const linkIndex = state.links.findIndex(
+                (link) => link.short_link === clickedShortLink
+            );
+            if (linkIndex !== -1) {
+                state.links[linkIndex].click_count += 1;
+            }
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -152,6 +161,7 @@ export const {
     setCurrentPage,
     clearLinkError,
     resetLinks,
+    incrementLocalClick,
 } = linkSlice.actions;
 
 // Selectors
