@@ -16,6 +16,6 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           image_name: ${{ github.repository }}-server
-          image_tag: server,latest
+          image_tag: latest
           context: './server'
           dockerfile: './server/Dockerfile'
