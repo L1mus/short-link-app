@@ -68,7 +68,23 @@ func (c *LinkController) CreateShortLink(ctx *gin.Context) {
 			response.Error(ctx, http.StatusConflict, err.Error())
 			return
 		}
-		response.Error(ctx, http.StatusInternalServerError, err.Error())
+		if errors.Is(err, appError.MinimumSlugLength) {
+			response.Error(ctx, http.StatusBadRequest, err.Error())
+			return
+		}
+		if errors.Is(err, appError.MaximumSlugLength) {
+			response.Error(ctx, http.StatusBadRequest, err.Error())
+			return
+		}
+		if errors.Is(err, appError.InvalidSlug) {
+			response.Error(ctx, http.StatusBadRequest, err.Error())
+			return
+		}
+		if errors.Is(err, appError.UsingReserveWord) {
+			response.Error(ctx, http.StatusBadRequest, err.Error())
+			return
+		}
+		response.Error(ctx, http.StatusInternalServerError, "internal server error")
 		return
 	}
 	response.Success(ctx, http.StatusCreated, "Link created successfully", res)
