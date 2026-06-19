@@ -77,6 +77,10 @@ func (s *LinkService) GetAllLink(ctx context.Context, id int, req dto.PageQuery)
 
 func (s *LinkService) CreateShortLink(ctx context.Context, userID int, req dto.CreateShortLinkRequest) (dto.CreateLinkResponse, error) {
 	if req.OptionalSlug != "" {
+		if err := pkg.ValidateCustomSlug(req.OptionalSlug); err != nil {
+			return dto.CreateLinkResponse{}, err
+		}
+
 		exist, err := s.linkRepository.CheckLink(ctx, req.OptionalSlug)
 		if err != nil {
 			return dto.CreateLinkResponse{}, err
