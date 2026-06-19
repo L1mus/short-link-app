@@ -25,24 +25,36 @@ From shortening clumsy URLs to tracking your link engagement, ShortLink-app work
 - [![Swagger](https://img.shields.io/badge/Swagger-Docs-85EA2D?logo=swagger&logoColor=white)](https://swagger.io/)
 - [![Docker](https://img.shields.io/badge/Docker-29.5.2-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
-## Environment
+## Environment server local
 
-```bash
-APP_HOST=<your_app_host>
-APP_PORT=<your_app_port>
-
-DB_HOST=<your_database_host>
-DB_PORT=<your_database_port>
-DB_USER=<your_database_user>
-DB_PASS=<your_database_password>
-DB_NAME=<your_database_name>
-
-JWT_ISSUER=<your_jwt_issuer>
-JWT_SECRET=<your_jwt_secret>
-
-RDB_USER=<your_redis_user>
-RDB_PASS=<your_redis_password>
+```md
+ APP_HOST=YOUR_APP_HOST //localhost
+ APP_PORT=YOUR_APP_PORT //8080
+ 
+ DB_HOST=YOUR_DB_HOST // localhost
+ DB_USER=YOUR_DB_USER // make sure it is the same as .env ./compose/psql
+ DB_PASS=YOUR_DB_PASS // make sure it is the same as .env ./compose/psql
+ DB_NAME=YOUR_DB_NAME // make sure it is the same as .env ./compose/psql
+ DB_PORT=YOUR_DB_PORT // 5432 default
+ 
+ RDB_ADDR=YOUR_RDB_ADDR // localhost:6379 default
+ RDB_USER=YOUR_RDB_USERNAME // make sure it is the same as redis.conf
+ RDB_PASS=YOUR_RDB_PASS // make sure it is the same as redis.conf
+ 
+ JWT_ISSUER=YOUR_JWT_ISSUER // shortlink.com
+ JWT_SECRET=YOUR_JWT_SECRET
+ 
+ ALLOWED_ORIGINS=YOUR_ALLOWED_ORIGINS // local build using vite http://localhost:5173 default
 ```
+
+## Environment psql for container database server/compose/psql
+```md
+POSTGRES_PASSWORD=your_password
+POSTGRES_USER=your_username
+POSTGRES_DB=your_dbname
+```
+
+## 
 
 ## ⚙️ Installation
 
@@ -64,17 +76,23 @@ $ cd server
 $ go mod tidy
 ```
 
-4. Setup your [environment](##-environment)
+4. Set up your [environment locally](###Environment server local)
+5. navigate to server/compose for easier setup Redis and DB PSQL
+*notice make sure you use OS LINUX/UNIX if you use OS windows go install WSL
+```bash
+# Run this Command on directory server/compose
+$ docker compose up -d
+```
 
-5. Install [migrate](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate#installation) for DB migration
+*if u on Windows after run compose don't forget logout WSL to run migration
 
-6. Do the DB Migration
+5. Do the DB Migration 
 
 ```sh
 $ migrate -database YOUR_DATABASE_URL -path ./db/migrations up
 ```
 
-or if you install Makefile run command
+or if you install Makefile and psql Client run command
 
 ```sh
 $ make migrate-up
