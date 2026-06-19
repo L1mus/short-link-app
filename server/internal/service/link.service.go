@@ -101,17 +101,15 @@ func (s *LinkService) CreateShortLink(ctx context.Context, userID int, req dto.C
 		}, nil
 	}
 
-	slug, err := pkg.GenSlug()
-	if err != nil {
-		return dto.CreateLinkResponse{}, err
+	var slug string
+	for {
+		slug, _ = pkg.GenSlug()
+		exist, _ := s.linkRepository.CheckLink(ctx, slug)
+		if !exist {
+			break
+		}
 	}
-	exist, err := s.linkRepository.CheckLink(ctx, slug)
-	if err != nil {
-		return dto.CreateLinkResponse{}, err
-	}
-	if exist {
-		return dto.CreateLinkResponse{}, appError.LinkAlreadyExists
-	}
+
 	link, err := s.linkRepository.CreateShortLink(ctx, userID, slug, req.OriginalUrl)
 	if err != nil {
 		return dto.CreateLinkResponse{}, err
