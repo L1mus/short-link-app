@@ -33,5 +33,5 @@ type ResetPasswordRequest struct {
 
 type CreateShortLinkRequest struct {
 	OriginalUrl  string `json:"original_url" binding:"required,min=10"`
-	OptionalSlug string `json:"optional_slug" binding:"omitempty,min=6"`
+	OptionalSlug string `json:"optional_slug" binding:"omitempty"`
 }
