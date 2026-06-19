@@ -99,7 +99,7 @@ const Input = forwardRef(
                         <button
                             type="button"
                             onClick={() => setShowPassword((prev) => !prev)}
-                            className="absolute right-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                            className="absolute right-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
                             tabIndex={-1}
                             aria-label={
                                 showPassword

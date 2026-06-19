@@ -45,9 +45,7 @@ const Dashboard = () => {
     const currentPage = useSelector(selectCurrentPage);
     const totalPages = useSelector(selectTotalPages);
     const isLoading = useSelector(selectLinkLoading);
-
-    console.log(links)
-
+    
     const loadLinks = useCallback(
         (page = 1, searchQuery = '') => {
             dispatch(fetchLinksThunk({page, search: searchQuery}));
@@ -237,7 +235,7 @@ const Dashboard = () => {
                                         onClick={() =>
                                             handleCopy(link.slug, link.id)
                                         }
-                                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 hover:bg-blue-50 text-gray-400 hover:text-blue-primary transition-colors"
+                                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 hover:bg-blue-50 text-gray-400 hover:text-blue-primary transition-colors cursor-pointer"
                                         title="Copy link"
                                         aria-label="Copy short link"
                                     >
@@ -260,7 +258,7 @@ const Dashboard = () => {
                                     </button>
                                     <button
                                         onClick={() => handleDelete(link.id)}
-                                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 hover:bg-red-100 text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
                                         title="Delete link"
                                         aria-label="Delete link"
                                         disabled={isLoading}

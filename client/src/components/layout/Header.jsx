@@ -25,7 +25,7 @@ const Header = () => {
 
     return (
         <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
-            <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between gap-6">
+            <div className="w-full mx-auto px-6 h-14 flex items-center justify-between gap-6">
                 {/* Logo */}
                 <NavLink
                     to="/"
@@ -86,7 +86,7 @@ const Header = () => {
 
                             <button
                                 onClick={handleLogout}
-                                className="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
+                                className="text-sm font-medium text-red-500 hover:text-red-600 hover:scale-105 transition-colors cursor-pointer"
                             >
                                 Logout
                             </button>
