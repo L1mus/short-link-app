@@ -101,6 +101,7 @@ $ make migrate-up
 and seeding data
 
 ```sh
+# For Run this command you must install psql client
 $ make db-seed
 ```
 
