@@ -3,7 +3,10 @@ package pkg
 import (
 	"crypto/rand"
 	"math/big"
+	"regexp"
 	"strings"
+
+	"github.com/L1mus/short-link-app/server/internal/appError"
 )
 
 const alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -49,4 +52,39 @@ func GenSlug() (string, error) {
 		return "", err
 	}
 	return Base64Encoded(randomID), nil
+}
+
+func ValidateCustomSlug(slug string) error {
+	var (
+		reservedWords = map[string]bool{
+			"api":       true,
+			"login":     true,
+			"register":  true,
+			"dashboard": true,
+		}
+		slugRegex = regexp.MustCompile(`^[a-zA-Z0-9-]+$`)
+	)
+
+	// cek panjang
+	if len(slug) < 3 {
+		return appError.MinimumSlugLength
+	}
+	if len(slug) > 50 {
+		return appError.MaximumSlugLength
+	}
+
+	// cek karakter
+	if !slugRegex.MatchString(slug) {
+		return appError.InvalidSlug
+	}
+
+	// cek reserved words
+	slugLower := strings.ToLower(slug)
+	segments := strings.Split(slugLower, "-")
+	for _, segment := range segments {
+		if reservedWords[segment] {
+			return appError.UsingReserveWord
+		}
+	}
+	return nil
 }
