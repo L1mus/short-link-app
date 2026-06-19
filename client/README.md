@@ -79,6 +79,6 @@ $ npm run dev
 
 ## Related Project
 
-[Backend short-link-app Repository](https://github.com/L1mus/short-link-app/server)
+[Backend short-link-app Repository](https://github.com/L1mus/short-link-app/tree/main/server)
 
 Copyright (c) 2026
