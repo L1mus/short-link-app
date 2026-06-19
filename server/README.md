@@ -141,6 +141,6 @@ Full interactive docs available at `/swagger/index.html` after running the serve
 - Open a Pull Request
 
 ## Related Project
-[Frontend ShortLink Repository](https://github.com/L1mus/short-link-app/client)
+[Frontend ShortLink Repository](https://github.com/L1mus/short-link-app/tree/main/client)
 
 Copyright (c) 2026
